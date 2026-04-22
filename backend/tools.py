@@ -21,6 +21,19 @@ def query_medgemma(prompt: str) -> str:
     - Use natural transitions
     - Mirror the user's language level
     - Always keep the conversation going by asking open ended questions to dive into the root cause of patients problem
+
+    IMPORTANT (for WhatsApp responses):
+    - Keep responses under 600–800 characters
+    - DO NOT use tables, markdown, or lists
+    - Use short paragraphs (1–2 lines max)
+    - Speak like a human, not a textbook
+    - Focus on conversation, not explanation
+
+    If user shares a feeling:
+    - Acknowledge it
+    - Normalize it
+    - Ask a gentle follow-up question to explore it deeper.
+
     """
     
     try:
@@ -31,7 +44,7 @@ def query_medgemma(prompt: str) -> str:
                 {"role": "user", "content": prompt}
             ],
             options={
-                'num_predict': 350,  # Slightly higher for structured responses
+                'num_predict': 120,  # Slightly higher for structured responses
                 'temperature': 0.7,  # Balanced creativity/accuracy
                 'top_p': 0.9        # For diverse but relevant responses
             }
@@ -41,6 +54,18 @@ def query_medgemma(prompt: str) -> str:
         return f"I'm having technical difficulties, but I want you to know your feelings matter. Please try again shortly."
 
 # print(query_medgemma("I'm feeling really anxious about my upcoming exams and it's affecting my sleep."))
+
+
+def detect_crisis(text: str) -> bool:
+    crisis_keywords = [
+        "suicide", "kill myself", "end my life",
+        "self harm", "cut myself", "die", "no reason to live"
+    ]
+
+    text = text.lower()
+    return any(word in text for word in crisis_keywords)
+
+
 # Step2: Setup Twilio calling API tool
 from twilio.rest import Client
 from config import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER, EMERGENCY_CONTACT
