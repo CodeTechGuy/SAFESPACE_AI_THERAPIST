@@ -1,29 +1,82 @@
-
 import streamlit as st
 import requests
+import time
 
-BACKEND_URL = "http://localhost:5729/ask"
-
-st.set_page_config(page_title="AI Mental Health Therapist", layout="wide")
-st.title("🧠 SafeSpace – AI Mental Health Therapist")
+st.set_page_config(page_title="SafeSpace AI", layout="centered")
 
 
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+st.markdown("""
+<style>
+.user-msg {
+    background-color: #2563eb;
+    color: white;
+    padding: 12px;
+    border-radius: 12px;
+    margin: 8px 0;
+    text-align: right;
+}
+
+.bot-msg {
+    background-color: #1e293b;
+    color: white;
+    padding: 12px;
+    border-radius: 12px;
+    margin: 8px 0;
+    text-align: left;
+}
+</style>
+""", unsafe_allow_html=True)
 
 
-user_input = st.chat_input("What's on your mind today?")
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+
+st.markdown("<h2 style='text-align:center;'>  SafeSpace AI</h2>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:gray;'>I'm here to listen.</p>", unsafe_allow_html=True)
+
+
+if len(st.session_state.messages) == 0:
+    st.session_state.messages.append({
+        "role": "assistant",
+        "content": "Hi, I’m here with you. How are you feeling today?"
+    })
+
+
+for msg in st.session_state.messages:
+    if msg["role"] == "user":
+        st.markdown(f"<div class='user-msg'>{msg['content']}</div>", unsafe_allow_html=True)
+    else:
+        st.markdown(f"<div class='bot-msg'>{msg['content']}</div>", unsafe_allow_html=True)
+
+
+user_input = st.chat_input("Type your message...")
+
 if user_input:
-    # Append user message
-    st.session_state.chat_history.append({"role": "user", "content": user_input})
     
-    # AI Agent exists here
-    response = requests.post(BACKEND_URL, json={"message": user_input})
+    st.session_state.messages.append({
+        "role": "user",
+        "content": user_input
+    })
 
-    st.session_state.chat_history.append({"role": "assistant", "content": f'{response.json()["response"]}'})
+    
+    with st.spinner("Listening..."):
+        time.sleep(1.2)
 
+        try:
+            response = requests.post(
+                "http://localhost:5729/ask",
+                json={"message": user_input}
+            ).json()
 
-# Step3: Show response from backend
-for msg in st.session_state.chat_history:
-    with st.chat_message(msg["role"]):
-        st.write(msg["content"])
+            bot_reply = response.get("response", "I'm here with you.")
+        except:
+            bot_reply = "⚠️ I'm having trouble responding right now."
+
+    # Save bot reply
+    st.session_state.messages.append({
+        "role": "assistant",
+        "content": bot_reply
+    })
+
+    st.rerun()
