@@ -11,3 +11,11 @@ wheels/
 
 # API keys and secrets
 config.py
+
+# Logs and temporary files
+*.log
+*.tmp
+
+01frontend.py
+therapist.py
+gpt.py
